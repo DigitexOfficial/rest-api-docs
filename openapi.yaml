@@ -1,0 +1,2334 @@
+---
+openapi: 3.0.2
+info:
+  title: Digitex Rest Trading API
+  version: 1.0.0
+  contact:
+    email: spavlyuk@digitex.io
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+servers:
+- url: https://testnet.digitexfutures.com/dapi
+  description: Testnet
+- url: https://digitex.io/dapi
+  description: Mainnet
+- url: http://127.0.0.1:8000/dapi
+  description: For internal testing purposes only
+paths:
+  /v1/exchange/bot/wallet/balances/:
+    summary: Wallet balances
+    description: Wallet balances
+    get:
+      tags:
+      - Private
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WalletBalance'
+          description: Basic JWT flow with access and refresh tokens
+      security:
+      - TradersToken: []
+      summary: Wallet balances
+      description: Getting wallet balances
+  /v1/exchange/bot/currency/:
+    summary: Currency list
+    description: Get currency definitions
+    get:
+      tags:
+      - Public
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Currency'
+              examples:
+                CurrencyDefiniitionsResponseExample:
+                  value:
+                  - id: 1
+                    name: Digitex
+                    code: DGTX
+                    currency_scale: 4
+                    withdraw_fee: "100.000000000000000000"
+                  - id: 2
+                    name: Bitcoin
+                    code: BTC
+                    currency_scale: 8
+                    withdraw_fee: "0.000050000000000000"
+                  - id: 4
+                    name: Ethereum
+                    code: ETH
+                    currency_scale: 8
+                    withdraw_fee: "100.000000000000000000"
+                  - id: 6
+                    name: USDT
+                    code: USDT
+                    currency_scale: 4
+                    withdraw_fee: "100.000000000000000000"
+                  - id: 7
+                    name: USD Coin
+                    code: USDC
+                    currency_scale: 4
+                    withdraw_fee: "100.000000000000000000"
+                  - id: 32
+                    name: Blockster
+                    code: BXR
+                    currency_scale: 4
+                    withdraw_fee: "0.000000000000000000"
+          description: Get currency definitions
+      summary: Get currency definitions
+      description: Get currency definitions
+  /v1/exchange/bot/ping:
+    summary: Pings the server
+    description: 'utility to ping the server. also returns server time. '
+    get:
+      tags:
+      - Public
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ping'
+              examples:
+                PingResponseExample:
+                  value:
+                    timestamp: 1234598990003
+                    message: success
+          description: Request succesfull
+      summary: Ping
+      description: Get ping
+  /v1/exchange/bot/order_book/:
+    summary: Returns order book for the market
+    get:
+      tags:
+      - Public
+      responses:
+        "200":
+          $ref: '#/components/responses/OrderBook'
+      summary: Order book
+      description: Get order book
+    parameters:
+    - examples:
+        market_id:
+          value: "2"
+      name: market_id
+      description: |
+        market_id
+      schema:
+        type: integer
+      in: query
+      required: true
+  /v1/exchange/bot/recent_trades/:
+    summary: Get recent trades
+    get:
+      tags:
+      - Public
+      parameters:
+      - name: max_trades
+        description: Limit maximum number of recent trades. Default limit is 100
+        schema:
+          type: integer
+        in: query
+      - examples:
+          market_id:
+            value: "1"
+        name: market_id
+        description: Market ids can be obtain from /bot/markets/ resuest
+        schema:
+          type: integer
+        in: query
+        required: true
+      responses:
+        "200":
+          $ref: '#/components/responses/RecentTrade'
+      summary: Recent trades for the market
+    parameters:
+    - examples:
+        market_id:
+          value: "2"
+      name: market_id
+      description: Market ids can be obtain from /bot/markets/ resuest
+      schema:
+        type: integer
+      in: query
+      required: true
+  /v1/exchange/bot/history/ohlcv/:
+    summary: View for OHLCV (open-high-low-close chart) candles with selected by datetime
+    description: View for OHLCV (open-high-low-close chart) candles with selected by datetime
+    get:
+      tags:
+      - Public
+      parameters:
+      - name: date_from
+        description: "Unix timestamp (UTC) of the leftmost required bar, including\
+          \ from."
+        schema:
+          type: integer
+        in: query
+      - name: date_to
+        description: "Unix timestamp (UTC) of the rightmost required bar, including\
+          \ to. It can be in the future. In this case, the rightmost required bar\
+          \ is the latest available bar."
+        schema:
+          type: integer
+        in: query
+      - name: market_id
+        description: int market_id
+        schema:
+          type: integer
+        in: query
+        required: true
+      - name: top_n
+        description: "number of records ohlcv, default 10000"
+        schema:
+          type: integer
+        in: query
+      - name: resolution
+        description: "Symbol resolution. Possible resolutions are daily (D or 1D,\
+          \ 2D ... ), weekly (1W, 2W ...), monthly (1M, 2M...) and an intra-day resolution\
+          \ – minutes(1, 2 ...)."
+        schema:
+          type: string
+        in: query
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OHLCV'
+          description: Get array of OHLCVs (open-high-low-close chart)
+      deprecated: false
+      summary: OHLCV
+      description: Open-high-low-close chart
+  /v1/exchange/bot/trader/order/:
+    summary: Place an order
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceOrder'
+            examples:
+              PlaceOrderExample:
+                value:
+                  id: 986ca2aa-9f21-4a90-87f0-692b88c92bdf
+                  market_id: 24
+                  side: 1
+                  type: 2
+                  duration: 2
+                  leverage: 1
+                  quantity: 1234
+                  price: 0.0038
+        required: true
+      tags:
+      - Private
+      responses:
+        "200":
+          $ref: '#/components/responses/PlaceOrder'
+      security:
+      - TradersToken: []
+      summary: Place an order
+  /v1/exchange/bot/exchange_info/:
+    summary: Get exchange info
+    get:
+      tags:
+      - Public
+      responses:
+        "200":
+          $ref: '#/components/responses/GetExchangeInfo'
+      summary: Exchange info
+  /v1/exchange/bot/markets/:
+    summary: Get all markets
+    description: Getting all markets
+    get:
+      tags:
+      - Public
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Market'
+              examples:
+                Success:
+                  value:
+                  - id: 2
+                    name: ETH/USD
+                    code: ETHUSD
+                    market_type: 1
+                    base_currency: ETH
+                    quote_currency: USD
+                    description: ETH/USD Perpetual Futures
+                    tick_size: "1.000000000000000000"
+                    tick_price: "1.000000000000000000"
+                    tick_scale: 0
+                    pnl_scale: 0
+                    mark_price_scale: 2
+                    category: Futures
+                    quantity_scale: 0
+                    large_scale: 0
+                    lot_size: "1.000000000000000000"
+                    openPx: 2212
+                    highPx: 2332
+                    lowPx: 2203
+                    pxChange24h: 3.5340314136125652
+                    volume24h: 152110
+                    volume24hUsd: 910147.66152127
+                    lastTradePx: 2292
+                    usd_scale: 2
+                    liquidity_reward_currency: 1
+                    contract_currency: DGTX
+                    funding_rate: 2.0E-4
+          description: Getting all markets
+      summary: All markets
+      description: Getting all markets
+  /v1/exchange/bot/order_history/:
+    summary: Get order history
+    description: "In the response, we should see all orders that have the FILLED,\
+      \ CANCELED or REJECTED status."
+    get:
+      tags:
+      - Private
+      responses:
+        "200":
+          $ref: '#/components/responses/Orders'
+      summary: Order history
+      description: "In the response, we should see all orders that have the FILLED,\
+        \ CANCELED or REJECTED status."
+    parameters:
+    - examples:
+        market_id:
+          value: "2"
+      name: market_id
+      description: Id of a market
+      schema:
+        type: integer
+      in: query
+    - examples:
+        page_size:
+          value: "30"
+      name: page_size
+      description: number of itemas on a page
+      schema:
+        type: integer
+      in: query
+    - examples:
+        created_at_to:
+          value: 2020-04-02T13:37:39.867Z
+      name: created_at_to
+      description: ISO 8601 formatted date. Only return contracts traded before this
+        time
+      schema:
+        type: string
+      in: query
+    - examples:
+        created_at_from:
+          value: 2020-04-01T13:37:39.867Z
+      name: created_at_from
+      description: ISO 8601 formatted date. Only return contracts traded after this
+        time.
+      schema:
+        type: string
+      in: query
+    - examples:
+        trader_id:
+          value: "2"
+      name: trader_id
+      description: Id of a users trader
+      schema:
+        type: number
+      in: query
+    - examples:
+        status:
+          value: "2"
+      name: status
+      description: orders status
+      schema:
+        type: integer
+      in: query
+    - examples:
+        cursor:
+          value: qweJKFA31rnkjASFALKhl1324
+      name: cursor
+      description: cursor for fetching pages
+      schema:
+        type: string
+      in: query
+  /v1/exchange/bot/order_status/:
+    summary: Get orders status
+    description: Get status of orders by query params
+    get:
+      tags:
+      - Private
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrdersType'
+              examples:
+                Success:
+                  value:
+                  - created_at: 1566818724722
+                    client_id: testOrder
+                    id: 22542179qwerqwetasdf
+                    quantity: "0"
+                    orig_quantity: "10"
+                    price: "0"
+                    reduceOnly: false
+                    side: BUY
+                    status: NEW
+                    stopPrice: "9300"
+                    market__code: BTCUSDT
+                    timeInForce: GTC
+                    type: LIMIT
+                    executed_quantity: 12
+                    average_price: 123
+          description: Must return list of orders
+      summary: Order status
+      description: Get status of orders by query params
+    parameters:
+    - examples:
+        trader_id:
+          value: "3"
+      name: trader_id
+      description: Id of a trader
+      schema:
+        type: integer
+      in: query
+    - examples:
+        order_id:
+          value: d3c32cc8-89b7-4a4a-8847-7a255e7739ad
+      name: client_id
+      description: Id of an order
+      schema:
+        type: string
+      in: query
+      required: true
+  /v1/exchange/bot/orders/:
+    summary: Get all orders
+    description: "Show only orders in status: ACCEPTED, FILLED, PARTIAL"
+    get:
+      tags:
+      - Private
+      parameters:
+      - name: status
+        description: "2"
+        schema:
+          type: integer
+        in: query
+      responses:
+        "200":
+          $ref: '#/components/responses/Orders'
+      summary: All orders
+      description: "Show only orders in status: ACCEPTED, FILLED, PARTIAL"
+    parameters:
+    - examples:
+        trader_id:
+          value: "2"
+      name: trader_id
+      description: Id of a trader
+      schema:
+        type: integer
+      in: query
+    - examples:
+        type:
+          value: "3"
+      name: type
+      description: ""
+      schema:
+        type: string
+      in: query
+    - examples:
+        side:
+          value: "1"
+      name: side
+      description: ""
+      schema:
+        type: integer
+      in: query
+    - examples:
+        market_id:
+          value: "2"
+      name: market_id
+      description: id of a market
+      schema:
+        type: integer
+      in: query
+      required: false
+    - examples:
+        status:
+          value: "2"
+      name: status
+      description: "2"
+      schema:
+        type: integer
+      in: query
+    - examples:
+        page_size:
+          value: "50"
+      name: page_size
+      description: Size of a paginator page
+      schema:
+        type: integer
+      in: query
+    - examples:
+        cursor:
+          value: cD0yMDIxLTA4LTE4KzE1JTNBMjQlM0EwOS43OTczMTUlMkIwMCUzQTAw
+      name: cursor
+      description: Cursor for fetching. Pagination
+      schema:
+        type: string
+      in: query
+  /v1/exchange/bot/trade_history/:
+    summary: Get trade history
+    description: Get trade history of a trader
+    get:
+      tags:
+      - Private
+      responses:
+        "200":
+          $ref: '#/components/responses/Trades'
+      security:
+      - TradersToken: []
+      summary: Trade history
+      description: Get trade history of a trader
+    parameters:
+    - examples:
+        market_id:
+          value: "2"
+      name: market_id
+      description: Id of a market
+      schema:
+        type: integer
+      in: query
+    - examples:
+        trader_id:
+          value: "2"
+      name: trader_id
+      description: Id of a looking trader user can check only own info
+      schema:
+        type: integer
+      in: query
+    - examples:
+        traded_at_to:
+          value: 2020-04-02T13:37:39.867Z
+      name: traded_at_to
+      description: ISO 8601 formatted date. Only return contracts trader before this
+        time.
+      schema:
+        type: string
+      in: query
+    - examples:
+        traded_at_from:
+          value: 2020-04-01T13:37:39.867Z
+      name: traded_at_from
+      description: ISO 8601 formatted date. Only return contracts traded after this
+        time.
+      schema:
+        type: string
+      in: query
+    - name: page_size
+      description: size of a paginator page
+      schema:
+        type: integer
+      in: query
+    - examples:
+        cursor:
+          value: cD0yMDIxLTA4LTE4KzE1JTNBMjQlM0EwOS43OTczMTUlMkIwMCUzQTAw
+      name: cursor
+      description: Cursor for fetching pages in pagination
+      schema:
+        type: string
+      in: query
+  /v1/exchange/bot/trader/order/update/:
+    summary: Order update
+    description: Order update
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOrder'
+        required: true
+      tags:
+      - Private
+      responses:
+        "200":
+          $ref: '#/components/responses/UpdateOrder'
+      security:
+      - TradersToken: []
+      summary: Order update
+  /v1/exchange/bot/trader/order/cancel/:
+    description: ""
+    post:
+      requestBody:
+        description: |-
+          for cancel an order(s) - send market_id and list of cliet_id(s)
+
+          for cancel order(s) by market - send only market_id
+
+          for cancel all orders by all markets - send empty body
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelOrder'
+      tags:
+      - Private
+      responses:
+        "200":
+          $ref: '#/components/responses/CancelOrder'
+      summary: Cancel order
+  /v1/exchange/bot/position/:
+    summary: Shows trader's position
+    description: Shows current position of the trader in the futures market
+    get:
+      tags:
+      - Private
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PositionItem'
+              examples:
+                PositionResponseList:
+                  value:
+                  - contractCurrency: DGTX
+                    leverage: 1.8294143915246146
+                    market: BTCUSD
+                    markPrice: 49587.53
+                    positionMargin: "0.000000000000000000"
+                    quantity: 0
+                    timestamp: 1629797235
+                  - contractCurrency: DGTX
+                    entryPrice: 3216
+                    leverage: 1.8294143915246146
+                    liquidationPrice: 3164
+                    market: ETHUSD
+                    markPrice: 3326.16
+                    positionMargin: "106.543400000000000000"
+                    quantity: 1
+                    positionSide: Long
+                    timestamp: 1629797235
+                    unrealizedPnl: 111
+                  - contractCurrency: USDC
+                    entryPrice: 47100
+                    leverage: 1.8294143915246146
+                    liquidationPrice: 23560
+                    market: FS:BTCUSD
+                    markPrice: 49587.53
+                    positionMargin: "47.090197100000000000"
+                    quantity: 1
+                    positionSide: Long
+                    timestamp: 1629797235
+                    unrealizedPnl: 2.47
+                  - contractCurrency: USDC
+                    leverage: 1.8294143915246146
+                    market: FS:BTC1USD
+                    markPrice: 49587.53
+                    positionMargin: "0.000000000000000000"
+                    quantity: 0
+                    timestamp: 1629797235
+                  - contractCurrency: USDC
+                    leverage: 1.8294143915246146
+                    market: FS:ETHUSD
+                    markPrice: 3326.16
+                    positionMargin: "0.000000000000000000"
+                    quantity: 0
+                    timestamp: 1629797235
+          description: Get all orders
+      security:
+      - TradersToken: []
+      summary: Trader position
+      description: ""
+  /v1/exchange/bot/balances/:
+    summary: Balances
+    description: Balances
+    get:
+      tags:
+      - Private
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Balances'
+          description: Get balances
+      security:
+      - TradersToken: []
+      summary: Balances
+      description: Getting balances
+components:
+  schemas:
+    UpdateOrder:
+      description: ""
+      required:
+      - client_id
+      - duration
+      - leverage
+      - market_id
+      - price
+      - quantity
+      - side
+      - type
+      type: object
+      properties:
+        client_id:
+          description: ""
+          type: string
+        duration:
+          description: ""
+          type: integer
+        leverage:
+          description: ""
+          type: integer
+        market_id:
+          description: ""
+          type: integer
+        price:
+          description: ""
+          type: string
+        quantity:
+          description: ""
+          type: string
+        side:
+          description: ""
+          type: integer
+        type:
+          description: ""
+          type: integer
+      example:
+        client_id: d3c32cc8-89b7-4a4a-8847-7a255e7739ad
+        duration: 1
+        leverage: 1
+        market_id: 1
+        price: "51000.000000000000000000"
+        quantity: "1.000000000000000000"
+        side: 2
+        trader_id: 119511
+        type: 2
+    CancelOrder:
+      title: Root Type for CancelOrder
+      description: ""
+      type: object
+      properties:
+        market_id:
+          format: int32
+          description: market_id
+          type: integer
+        orders_client_ids:
+          description: cliet_id(s)
+          type: array
+          items:
+            type: string
+      example:
+        market_id: 1
+        orders_client_ids:
+        - client_id1
+        - client_id2
+        - '...'
+    CreateOrder:
+      description: response with created order
+      required:
+      - client_id
+      - market_id
+      - price
+      - leverage
+      - duration
+      - quantity
+      - side
+      - trader_id
+      - type
+      type: object
+      properties:
+        client_id:
+          description: ""
+          type: string
+        market_id:
+          description: ""
+          type: integer
+        side:
+          description: ""
+          type: integer
+        type:
+          description: ""
+          type: integer
+        trader_id:
+          description: ""
+          type: integer
+        leverage:
+          description: ""
+          type: integer
+        duration:
+          description: ""
+          type: integer
+        quantity:
+          description: ""
+          type: string
+        price:
+          description: Price in string format
+          type: string
+    PagedTrade:
+      description: Paged Trade
+      type: object
+      example:
+        description: ""
+        type: object
+        properties:
+          previous:
+            description: Cursor for previous page
+            type: string
+          next:
+            description: Cursor for next page
+            type: string
+          results:
+            description: Trades list
+            type: array
+            items:
+              $ref: '#/components/schemas/Trade'
+        example:
+          next: cD0yMDIxLTA3LTEzKzEzJTNBMjIlM0ExOC4yNTUxOTElMkIwMCUzQTAu
+          results:
+          - trader_id: 56416
+            market_id: 1
+            traded_at: 2021-07-15T10:29:16.244578Z
+            side: 1
+            price: "32160.000000000000000000"
+            quantity: "15.000000000000000000"
+            contract_id: 398817002
+            order_id: 88cc2103-fa35-474c-8cda-cdcd91af9b61
+    OrderBook:
+      title: Root Type for OrderBook
+      description: OrderBook
+      type: object
+      properties:
+        ticker_id:
+          type: integer
+        timestamp:
+          format: int32
+          type: integer
+        bids:
+          type: array
+          items:
+            type: array
+            items:
+              format: double
+              type: number
+        asks:
+          type: array
+          items:
+            type: array
+            items:
+              format: double
+              type: number
+      example:
+        ticker_id: DGTX-USDC
+        timestamp: 1626855148998777
+        bids:
+        - - 0.002
+          - 3688993
+        - - 0.001
+          - 11107725
+        asks:
+        - - 0.003
+          - 1829942
+        - - 0.004
+          - 2829784
+        - - 0.005
+          - 2820502
+        - - 0.006
+          - 1819669
+    Market:
+      description: market mdel
+      required: []
+      type: object
+      properties:
+        id:
+          description: Market id
+          type: integer
+        name:
+          description: market name
+          type: string
+        code:
+          description: market code
+          type: string
+        market_type:
+          description: |-
+            1=Futures
+            2=Spot
+          type: integer
+        base_currency:
+          $ref: '#/components/schemas/Currency'
+          description: base currency
+        quote_currency:
+          $ref: '#/components/schemas/Currency'
+          description: quote currency of the market
+        description:
+          description: full name of the market
+          type: string
+    CurrencyBalance:
+      description: Currency Balance
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          description: Name market
+          type: string
+        code:
+          description: Code market
+          type: string
+    TradeHistory:
+      title: Root Type for TradeHistory
+      description: Data type for trades
+      type: object
+      properties:
+        trader_id:
+          format: int32
+          type: integer
+        market_id:
+          format: int32
+          type: integer
+        traded_at:
+          type: string
+        side:
+          format: int32
+          type: integer
+        price:
+          type: string
+        quantity:
+          type: string
+        contract_id:
+          format: int32
+          type: integer
+        order_id:
+          type: string
+      example:
+        trader_id: 119717
+        market_id: 24
+        traded_at: 2021-08-06T12:15:02.486081Z
+        side: 1
+        price: "0.002400000000000000"
+        quantity: "564.000000000000000000"
+        contract_id: 117694099
+        order_id: 99244c53-9215-43fe-9e83-7bd3a84acd15
+    WalletBalance:
+      description: Model for wallet balance
+      required: []
+      type: object
+      properties:
+        currency:
+          $ref: '#/components/schemas/CurrencyWalletBalances'
+          description: Currency Wallet Balances
+        main_balance:
+          description: Main balance
+          type: string
+        trading_balance:
+          description: Trading balance
+          type: string
+    OHLCV:
+      description: OHLCV
+      required: []
+      type: object
+      properties:
+        timestamp_:
+          description: ""
+          type: integer
+        open:
+          description: ""
+          type: string
+        high:
+          description: ""
+          type: string
+        low:
+          description: ""
+          type: string
+        close:
+          description: ""
+          type: string
+        volume:
+          description: ""
+          type: string
+      example:
+        timestamp_: 1573567858064750
+        open: "8680.000000000000000000"
+        high: "8685.000000000000000000"
+        low: "8675.000000000000000000"
+        close: "8685.000000000000000000"
+        volume: "57373.000000000000000000"
+    Balances:
+      description: Model for balance
+      required: []
+      type: object
+      properties:
+        currency:
+          $ref: '#/components/schemas/CurrencyBalance'
+          description: Currency
+        main_balance:
+          description: Main balance
+          type: string
+        trading_balance:
+          description: Trading balance
+          type: string
+        available_balance:
+          description: Available balance
+          type: string
+        total_balance:
+          description: Total balance
+          type: string
+    rateLimits:
+      description: ""
+      required:
+      - interval
+      - limit
+      type: object
+      properties:
+        interval:
+          description: ""
+          type: string
+        limit:
+          description: ""
+          type: integer
+      example: |-
+        "rateLimits": [
+                {
+                    "interval": "SECOND",
+                    "limit": 50
+                },
+                {
+                    "interval": "MINUTE",
+                    "limit": 500
+                }
+            ]
+    notifications:
+      description: ""
+      required:
+      - title
+      - message
+      type: object
+      properties:
+        title:
+          description: ""
+          type: string
+        message:
+          description: ""
+          type: string
+      example: |-
+        "notifications": [
+                {
+                    "title": "Updating UI",
+                    "message": "Rolling update on a UI."
+                },
+                {
+                    "title": "Maintenance 22.09.2020",
+                    "message": "Maintenance is planning for Testnet server from 14:00 UTC to 15:00 UTC with estimated down time not more than 15 minutes."
+                }
+        ]
+    RecentTrade:
+      description: ""
+      type: object
+      properties:
+        trade_id:
+          description: ""
+          type: integer
+        type:
+          description: ""
+          type: string
+        timestamp:
+          description: ""
+          type: integer
+        base_volume:
+          description: ""
+          type: string
+        quote_volume:
+          description: ""
+          type: string
+        price:
+          description: ""
+          type: string
+      example:
+        trade_id: 394254005
+        type: sell
+        timestamp: 1625037107016692
+        base_volume: 1149
+        quote_volume: 4.596
+        price: 0.004
+    PlaceOrder:
+      title: Root Type for PlaceOrder
+      description: ""
+      type: object
+      properties:
+        market_id:
+          format: int32
+          description: "market id, can be found in markets instance"
+          type: integer
+        side:
+          format: int32
+          description: |2-
+                BUY = 1
+                SELL = 2
+          type: integer
+        type:
+          format: int32
+          description: |2-
+                MARKET = 1
+                LIMIT = 2
+          type: integer
+        duration:
+          format: int32
+          description: |-
+            duration of the order
+
+                GFD = 1
+                GTC = 2
+                GTF = 3
+                IOC = 4
+                FOK = 5
+          type: integer
+        leverage:
+          format: int32
+          description: "Leverage of the trades, only valid for futures market and\
+            \ will be ignored for spot"
+          type: integer
+        quantity:
+          description: |-
+            quantity of the order. If you are trading futures, this is - amount of contracts.
+
+            for spot - it depends on your side.
+          type: string
+        price:
+          description: price of the orders
+          type: string
+        client_id:
+          description: "user generated id. it is optional, since this field is missing,\
+            \ the backend will generate one"
+          type: string
+      example:
+        id: 986ca2aa-9f21-4a90-87f0-692b88c92bdf
+        market_id: 24
+        side: 1
+        type: 2
+        duration: 2
+        leverage: 1
+        quantity: 1234
+        price: 0.0038
+    CurrencyDefinitions:
+      description: CurrencyDeffinison
+      type: object
+      properties:
+        id:
+          description: ID
+          type: integer
+        name:
+          description: Name
+          type: string
+        code:
+          description: Code
+          type: string
+        currency_scale:
+          description: Currency scale
+          type: integer
+        withdraw_fee:
+          description: Withdraw fee
+          type: string
+        usd_rate:
+          description: USD rate
+          type: string
+    ExchangeInfo:
+      title: Root Type for Get_exchange_info
+      description: ""
+      type: object
+      properties:
+        rateLimits:
+          description: ""
+          type: array
+          items:
+            $ref: '#/components/schemas/rateLimits'
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/notifications'
+        serverTime:
+          type: string
+        currencies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Currency'
+        markets:
+          type: array
+          items:
+            $ref: '#/components/schemas/exchange_info_market'
+      example:
+        rateLimits:
+        - interval: SECOND
+          limit: 50
+        - interval: MINUTE
+          limit: 500
+        notifications: []
+        serverTime: "1565613908500"
+        currencies:
+        - id: 3
+          name: USD
+          code: USD
+          currency_scale: 4
+          withdraw_fee: 1 00.000000000000000000
+          usd_rate: 1
+        - id: 3
+          name: USD
+          code: USD
+          currency_scale: 4
+          withdraw_fee: 1 00.000000000000000000
+          usd_rate: 1
+        - id: 3
+          name: USD
+          code: USD
+          currency_scale: 4
+          withdraw_fee: 1 00.000000000000000000
+          usd_rate: 1
+        markets:
+        - id: 2
+          name: ETH/USD
+          code: ETHUSD
+          market_type: 1
+          base_currency: ETH
+          quote_currency: USD
+          description: ETH/USD Perpetual Futures
+          tick_size: "1.000000000000000000"
+          tick_price: "1.000000000000000000"
+          tick_scale: 0
+          pnl_scale: 0
+          category: Futures
+          quantity_scale: 0
+          lot_size: "1.000000000000000000"
+          openPx: 2212
+          highPx: 2332
+          lowPx: 2203
+          pxChange24h: 3.5340314136125652
+          volume24h: 152110
+          volume24hUsd: 910147.66152127
+          lastTradePx: 2292
+          funding: 1.0E-4
+          liquidity_reward_currency: 1
+          contract_currency: DGTX
+          orderTypes:
+          - LIMIT
+          - MARKET
+          - STOP_MARKET
+          timeInForce:
+          - GTC
+          - IOC
+          - FOK
+    Ping:
+      description: regular ping response
+      required:
+      - timestamp
+      - message
+      type: object
+      properties:
+        timestamp:
+          description: time stamp of the server
+          minimum: 0
+          type: integer
+        message:
+          description: pong message
+          type: string
+    exchange_info_market:
+      description: ""
+      type: object
+      properties:
+        base_currency:
+          $ref: '#/components/schemas/Currency'
+          description: ""
+        category:
+          description: ""
+          type: string
+        code:
+          description: ""
+          type: string
+        contract_currency:
+          description: ""
+          type: string
+        description:
+          description: ""
+          type: string
+        funding:
+          description: ""
+          type: string
+        highPx:
+          description: ""
+          type: string
+        id:
+          description: ""
+          type: integer
+        lastTradePx:
+          description: ""
+          type: string
+        liquidity_reward_currency:
+          description: ""
+          type: string
+        lot_size:
+          description: ""
+          type: string
+        openPx:
+          description: ""
+          type: string
+        lowPx:
+          description: ""
+          type: string
+        market_type:
+          description: ""
+          type: integer
+        name:
+          description: ""
+          type: string
+        tick_size:
+          description: ""
+          type: string
+        tick_price:
+          description: ""
+          type: string
+        tick_scale:
+          description: ""
+          type: integer
+        pnl_scale:
+          description: ""
+          type: integer
+        quantity_scale:
+          description: ""
+          type: integer
+        pxChange24h:
+          description: ""
+          type: string
+        volume24h:
+          description: ""
+          type: string
+        volume24hUsd:
+          description: ""
+          type: string
+        quote_currency:
+          $ref: '#/components/schemas/Currency'
+          description: ""
+    OrdersType:
+      title: Root Type for OrdersType
+      description: Orders fields
+      type: object
+      properties:
+        id:
+          type: string
+        market:
+          type: string
+        side:
+          format: int32
+          type: integer
+        type:
+          format: int32
+          type: integer
+        status:
+          format: int32
+          type: integer
+        price:
+          type: string
+        quantity:
+          type: string
+        created_at:
+          type: string
+        client_id:
+          type: string
+        orig_quantity:
+          type: string
+        average_price:
+          type: string
+        reduce_only:
+          nullable: true
+          type: string
+        duration:
+          format: int32
+          type: integer
+      example:
+        id: 671de6fe-32fa-4816-8756-3b57a327798b
+        market: ETH/USDC
+        side: 1
+        type: 2
+        status: 4
+        price: "3211.250000000000000000"
+        quantity: "0.420000000000000000"
+        created_at: 2021-08-20T12:47:21.479712Z
+        client_id: f3dfd483-9de7-4cf4-ac5f-fe7c6153e1b5
+        orig_quantity: "0.420000000000000000"
+        average_price: 0
+        reduce_only: false
+        duration: 2
+    CurrencyWalletBalances:
+      description: Сurrency for wallet balances
+      required: []
+      type: object
+      properties:
+        id:
+          description: ID
+          type: integer
+        name:
+          description: Name
+          type: string
+        code:
+          description: Code
+          type: string
+        currency_scale:
+          description: Currency scale
+          type: integer
+        engine_scale:
+          description: Engine scale
+          type: integer
+        converter_allowed:
+          description: Converter allowed
+          type: boolean
+        converter_chain:
+          description: Converter chain
+          type: string
+        converter_rate_multiplier:
+          description: Converter rate multiplier
+          type: string
+        withdraw_fee:
+          description: Withdraw fee
+          type: string
+        usd_rate:
+          nullable: true
+          description: USD rate
+          type: string
+    PagedOrdersResponse:
+      title: Root Type for PagedOrdersResponse
+      description: Paginated orders list response
+      type: object
+      properties:
+        next:
+          nullable: true
+          description: cursor for next page
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrdersType'
+        previous:
+          nullable: true
+          description: cursor for previous page
+          type: string
+      example:
+        next: cD0yMDIxLTA4LTIwKzEyJTNBNDYlM0ExOC40Mjg3ODclMkIwMCUzQTAw
+        results:
+        - id: 671de6fe-32fa-4816-8756-3b57a327798b
+          market: ETH/USDC
+          side: 1
+          type: 2
+          status: 4
+          price: "3211.250000000000000000"
+          quantity: "0.420000000000000000"
+          created_at: 2021-08-20T12:47:21.479712Z
+          client_id: f3dfd483-9de7-4cf4-ac5f-fe7c6153e1b5
+          orig_quantity: "0.420000000000000000"
+          average_price: 0
+          reduce_only: false
+          duration: 2
+        - id: 656875b9-0f3e-4169-9236-da0a0531c512
+          market: ETH/USDC
+          side: 1
+          type: 2
+          status: 2
+          price: "3211.250000000000000000"
+          quantity: "1.618000000000000000"
+          created_at: 2021-08-20T12:47:21.471516Z
+          client_id: 50aa5d48-5e93-4a72-85a3-d63ac3683c6f
+          orig_quantity: "1.618000000000000000"
+          average_price: 0
+          duration: 2
+    Currency:
+      description: ""
+      type: object
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          description: ""
+          type: string
+        code:
+          description: ""
+          type: string
+        currency_scale:
+          format: int32
+          type: integer
+        withdraw_fee:
+          description: ""
+          type: string
+        usd_rate:
+          nullable: true
+          description: USD rate
+          type: string
+      example:
+        id: 2
+        name: Bitcoin
+        code: BTC
+        currency_scale: 8
+        withdraw_fee: "0.000050000000000000"
+        usd_rate: "46301.090000000000000000"
+    PagedHistoryTrades:
+      title: Root Type for PagedTrades
+      description: Paginated trades response
+      type: object
+      properties:
+        next:
+          nullable: true
+          description: cursor for next page
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradeHistory'
+        previous:
+          nullable: true
+          description: cursor for previous page
+          type: string
+      example:
+        next: cD0yMDIxLTA3LTIwKzEwJTNBMjglM0EzNS4yNTI3OTMlMkIwMCUzQTAw
+        previous: cD0yMDIxLTA3LTIwKzEwJTNBMjglM0EzNS4yNTI3ONDlMkIwMCUzQT34
+        results:
+        - trader_id: 119717
+          market_id: 1
+          traded_at: 2021-08-18T15:31:32.229211Z
+          side: 1
+          price: "45245.000000000000000000"
+          quantity: "1.000000000000000000"
+          contract_id: 130089258
+          order_id: 19fba70e-9ea8-49fb-ad9f-553afa1c347c
+        - trader_id: 119717
+          market_id: 24
+          traded_at: 2021-08-06T12:15:02.486081Z
+          side: 1
+          price: "0.002400000000000000"
+          quantity: "564.000000000000000000"
+          contract_id: 117694099
+          order_id: 99244c53-9215-43fe-9e83-7bd3a84acd15
+    PositionItem:
+      title: Root Type for PositionResponseItem
+      description: ""
+      type: object
+      properties:
+        contractCurrency:
+          type: string
+        entryPrice:
+          nullable: true
+          type: string
+        leverage:
+          type: string
+        liquidationPrice:
+          type: string
+        market:
+          type: string
+        markPrice:
+          type: string
+        positionMargin:
+          type: string
+        quantity:
+          type: string
+        positionSide:
+          nullable: true
+          type: string
+        timestamp:
+          format: int32
+          type: integer
+        unrealizedPnl:
+          type: string
+      example:
+        contractCurrency: DGTX
+        leverage: 1.8294143915246146
+        market: BTCUSD
+        markPrice: 49587.53
+        positionMargin: "0.000000000000000000"
+        quantity: 0
+        timestamp: 1629797235
+  responses:
+    DRFGenericExceptionResponse:
+      $ref: apicurio:44557#/components/responses/DRFGenericExceptionResponse
+    Balances:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Balances'
+      description: ""
+    RecentTrade:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/RecentTrade'
+      description: ""
+    GetExchangeInfo:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExchangeInfo'
+      description: ""
+    PagedTrade:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagedTrade'
+      description: Paged Trade
+    CancelOrder:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CancelOrder'
+          examples:
+            CancelOrderResponse:
+              value:
+                market_id: 1
+                orders_client_ids:
+                - client_id_1
+                - client_id_2
+                - '...'
+      description: ""
+    PlaceOrder:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PlaceOrder'
+          examples:
+            PlaceOrderResponseExample:
+              value:
+                id: 986ca2aa-9f21-4a90-87f0-692b88c92bdf
+                market_id: 24
+                trader_id: 12354
+                side: 1
+                type: 2
+                duration: 2
+                leverage: 1
+                quantity: 1234
+                price: 0.0038
+      description: ""
+    UpdateOrder:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UpdateOrder'
+          examples:
+            UpdateOrderResponce:
+              value:
+                timestamp: 1566818724722
+                client_order_id: 90d26126-3b65-4274-9ecb-3365a54b0975
+                order_id: e76163a9-142d-43fa-b0d6-27c690b73676
+                qty: 1
+                exec_qty: 1
+                avg_price: 0
+                quantity: 1
+                market_id: 1
+                price: 48000
+                reduce_only: false
+                side: 1
+                status: 2
+                stop_price: 50000
+                time_in_force: 1
+                type: 2
+      description: ""
+    Ping:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Ping'
+      description: ""
+    WalletBalance:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/WalletBalance'
+      description: ""
+    OrderBook:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OrderBook'
+      description: ""
+    MarketResponse:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Market'
+          examples:
+            M:
+              value:
+              - id: 2
+                name: ETH/USD
+                code: ETHUSD
+                market_type: 1
+                base_currency:
+                  id: 4
+                  name: Ethereum
+                  code: ETH
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 3143.31
+                quote_currency:
+                  id: 3
+                  name: USD
+                  code: USD
+                  currency_scale: 2
+                  engine_scale: 4
+                  converter_allowed: true
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 1
+                description: ETH/USD Perpetual Futures
+                tick_size: "1.000000000000000000"
+                tick_price: "1.000000000000000000"
+                tick_scale: 0
+                pnl_scale: 0
+                mark_price_scale: 2
+                category: Futures DGTX
+                quantity_scale: 0
+                large_scale: 0
+                lot_size: "1.000000000000000000"
+                openPx: 3106
+                highPx: 3174
+                lowPx: 3059
+                pxChange24h: 1.519468186134853
+                volume24h: 341013
+                volume24hUsd: 3897986.45688654
+                lastTradePx: 3159
+                usd_scale: 2
+                liquidity_reward_currency: 1
+                contract_currency:
+                  id: 1
+                  name: Digitex
+                  code: DGTX
+                  currency_scale: 4
+                  engine_scale: 4
+                  converter_allowed: false
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.00367019
+                funding_rate: 3.0E-4
+              - id: 1
+                name: BTC/USD
+                code: BTCUSD
+                market_type: 1
+                base_currency:
+                  id: 2
+                  name: Bitcoin
+                  code: BTC
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "37,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "0.000050000000000000"
+                  usd_rate: 47132.9
+                quote_currency:
+                  id: 3
+                  name: USD
+                  code: USD
+                  currency_scale: 2
+                  engine_scale: 4
+                  converter_allowed: true
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 1
+                description: BTC/USD Perpetual Futures
+                tick_size: "5.000000000000000000"
+                tick_price: "0.100000000000000000"
+                tick_scale: 0
+                pnl_scale: 1
+                mark_price_scale: 2
+                category: Futures DGTX
+                quantity_scale: 0
+                large_scale: 0
+                lot_size: "1.000000000000000000"
+                openPx: 47055
+                highPx: 47780
+                lowPx: 46340
+                pxChange24h: 0.1380188979721839
+                volume24h: 1063147
+                volume24hUsd: 3673095.391770591
+                lastTradePx: 47095
+                usd_scale: 2
+                liquidity_reward_currency: 1
+                contract_currency:
+                  id: 1
+                  name: Digitex
+                  code: DGTX
+                  currency_scale: 4
+                  engine_scale: 4
+                  converter_allowed: false
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.00367019
+                funding_rate: 3.0E-4
+              - id: 16
+                name: ETH/USD USDC
+                code: FS:ETHUSD
+                market_type: 1
+                base_currency:
+                  id: 4
+                  name: Ethereum
+                  code: ETH
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 3143.31
+                quote_currency:
+                  id: 3
+                  name: USD
+                  code: USD
+                  currency_scale: 2
+                  engine_scale: 4
+                  converter_allowed: true
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 1
+                description: ETH/USD future nominated in DUSD
+                tick_size: "1.000000000000000000"
+                tick_price: "0.001000000000000000"
+                tick_scale: 0
+                pnl_scale: 4
+                mark_price_scale: 3
+                category: Futures USDC
+                quantity_scale: 0
+                large_scale: 0
+                lot_size: "1.000000000000000000"
+                openPx: 3109
+                highPx: 3174
+                lowPx: 3059
+                pxChange24h: 1.1139401654996817
+                volume24h: 361768
+                volume24hUsd: 1125049.3721364
+                lastTradePx: 3142
+                usd_scale: 2
+                contract_currency:
+                  id: 7
+                  name: USD Coin
+                  code: USDC
+                  currency_scale: 4
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "11,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.9978
+                funding_rate: 3.0E-4
+              - id: 14
+                name: BTC/USD USDC
+                code: FS:BTCUSD
+                market_type: 1
+                base_currency:
+                  id: 2
+                  name: Bitcoin
+                  code: BTC
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "37,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "0.000050000000000000"
+                  usd_rate: 47132.9
+                quote_currency:
+                  id: 3
+                  name: USD
+                  code: USD
+                  currency_scale: 2
+                  engine_scale: 4
+                  converter_allowed: true
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 1
+                description: BTC/USD future nominated in USDC
+                tick_size: "5.000000000000000000"
+                tick_price: "0.005000000000000000"
+                tick_scale: 0
+                pnl_scale: 2
+                mark_price_scale: 1
+                category: Futures USDC
+                quantity_scale: 0
+                large_scale: 0
+                lot_size: "1.000000000000000000"
+                openPx: 47030
+                highPx: 47795
+                lowPx: 46340
+                pxChange24h: 0.08492569002123142
+                volume24h: 436631
+                volume24hUsd: 2.0523822441309E7
+                lastTradePx: 47100
+                usd_scale: 2
+                contract_currency:
+                  id: 7
+                  name: USD Coin
+                  code: USDC
+                  currency_scale: 4
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "11,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.9978
+                funding_rate: 3.0E-4
+              - id: 15
+                name: BTC1/USD USDC
+                code: FS:BTC1USD
+                market_type: 1
+                base_currency:
+                  id: 2
+                  name: Bitcoin
+                  code: BTC
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "37,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "0.000050000000000000"
+                  usd_rate: 47132.9
+                quote_currency:
+                  id: 3
+                  name: USD
+                  code: USD
+                  currency_scale: 2
+                  engine_scale: 4
+                  converter_allowed: true
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 1
+                description: BTC1/USD future nominated in USDC
+                tick_size: "1.000000000000000000"
+                tick_price: "0.000100000000000000"
+                tick_scale: 0
+                pnl_scale: 2
+                mark_price_scale: 1
+                category: Futures USDC
+                quantity_scale: 0
+                large_scale: 0
+                lot_size: "1.000000000000000000"
+                openPx: 0
+                highPx: 47795
+                lowPx: 46349
+                pxChange24h: 0.07431944621395507
+                volume24h: 498331
+                volume24hUsd: 2343922.48353828
+                lastTradePx: 47094
+                usd_scale: 2
+                contract_currency:
+                  id: 7
+                  name: USD Coin
+                  code: USDC
+                  currency_scale: 4
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "11,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.9978
+                funding_rate: 3.0E-4
+              - id: 24
+                name: DGTX/USDC
+                code: S:DGTXUSDC
+                market_type: 2
+                base_currency:
+                  id: 1
+                  name: Digitex
+                  code: DGTX
+                  currency_scale: 4
+                  engine_scale: 4
+                  converter_allowed: false
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.00367019
+                quote_currency:
+                  id: 7
+                  name: USD Coin
+                  code: USDC
+                  currency_scale: 4
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "11,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.9978
+                description: DGTX/USDC spot
+                tick_size: "0.000100000000000000"
+                tick_price: "0.000000000000000000"
+                tick_scale: 4
+                pnl_scale: 4
+                mark_price_scale: 4
+                category: Spot
+                quantity_scale: 0
+                large_scale: 0
+                lot_size: "1.000000000000000000"
+                openPx: 0
+                highPx: 0.0038
+                lowPx: 0.0025
+                pxChange24h: 8.333333333333334
+                volume24h: 4887740
+                volume24hUsd: 17938.9344706
+                lastTradePx: 0.0036
+                usd_scale: 4
+                liquidity_reward_currency: 1
+                funding_rate: 0
+              - id: 4
+                name: DGTX/ETH
+                code: S:DGTXETH
+                market_type: 2
+                base_currency:
+                  id: 1
+                  name: Digitex
+                  code: DGTX
+                  currency_scale: 4
+                  engine_scale: 4
+                  converter_allowed: false
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.00367019
+                quote_currency:
+                  id: 4
+                  name: Ethereum
+                  code: ETH
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 3143.31
+                description: DGTX/ETH Spot
+                tick_size: "0.000000100000000000"
+                tick_price: "0.000000100000000000"
+                tick_scale: 7
+                pnl_scale: 8
+                mark_price_scale: 8
+                category: Spot
+                quantity_scale: 0
+                large_scale: 2
+                lot_size: "1.000000000000000000"
+                openPx: 0
+                highPx: 1.3E-6
+                lowPx: 1.0E-6
+                pxChange24h: 16.666666666666668
+                volume24h: 3060042
+                volume24hUsd: 11230.93554798
+                lastTradePx: 1.2E-6
+                usd_scale: 4
+                liquidity_reward_currency: 1
+                funding_rate: 0
+              - id: 18
+                name: BTC/USDC
+                code: S:BTCUSDC
+                market_type: 2
+                base_currency:
+                  id: 2
+                  name: Bitcoin
+                  code: BTC
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "37,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "0.000050000000000000"
+                  usd_rate: 47132.9
+                quote_currency:
+                  id: 7
+                  name: USD Coin
+                  code: USDC
+                  currency_scale: 4
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "11,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.9978
+                description: BTC/USDC spot
+                tick_size: "5.000000000000000000"
+                tick_price: "0.000000000000000000"
+                tick_scale: 0
+                pnl_scale: 0
+                mark_price_scale: 4
+                category: Spot
+                quantity_scale: 4
+                large_scale: 0
+                lot_size: "0.000100000000000000"
+                openPx: 0
+                highPx: 47795
+                lowPx: 47025
+                pxChange24h: -0.06376195536663125
+                volume24h: 22.0417
+                volume24hUsd: 1038889.24193
+                lastTradePx: 47050
+                usd_scale: 2
+                liquidity_reward_currency: 1
+                funding_rate: 0
+              - id: 20
+                name: ETH/USDC
+                code: S:ETHUSDC
+                market_type: 2
+                base_currency:
+                  id: 4
+                  name: Ethereum
+                  code: ETH
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 3143.31
+                quote_currency:
+                  id: 7
+                  name: USD Coin
+                  code: USDC
+                  currency_scale: 4
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "11,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.9978
+                description: ETH/USDC Spot
+                tick_size: "0.250000000000000000"
+                tick_price: "0.000000000000000000"
+                tick_scale: 2
+                pnl_scale: 4
+                mark_price_scale: 4
+                category: Spot
+                quantity_scale: 3
+                large_scale: 0
+                lot_size: "0.000100000000000000"
+                openPx: 0
+                highPx: 3174.5
+                lowPx: 3116
+                pxChange24h: 1.2328985046134266
+                volume24h: 46.032
+                volume24hUsd: 144692.84592
+                lastTradePx: 3143
+                usd_scale: 2
+                liquidity_reward_currency: 1
+                funding_rate: 0
+              - id: 19
+                name: ETH/BTC
+                code: S:ETHBTC
+                market_type: 2
+                base_currency:
+                  id: 4
+                  name: Ethereum
+                  code: ETH
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 3143.31
+                quote_currency:
+                  id: 2
+                  name: Bitcoin
+                  code: BTC
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "37,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "0.000050000000000000"
+                  usd_rate: 47132.9
+                description: ETH/BTC spot
+                tick_size: "0.000010000000000000"
+                tick_price: "0.000000000000000000"
+                tick_scale: 5
+                pnl_scale: 8
+                mark_price_scale: 8
+                category: Spot
+                quantity_scale: 3
+                large_scale: 0
+                lot_size: "0.001000000000000000"
+                openPx: 0.06609
+                highPx: 0.06681
+                lowPx: 0.06569
+                pxChange24h: 0.9452363090772693
+                volume24h: 80.376
+                volume24hUsd: 252646.68456
+                lastTradePx: 0.06665
+                usd_scale: 2
+                liquidity_reward_currency: 1
+                funding_rate: 0
+              - id: 23
+                name: DGTX/BTC
+                code: S:DGTXBTC
+                market_type: 2
+                base_currency:
+                  id: 1
+                  name: Digitex
+                  code: DGTX
+                  currency_scale: 4
+                  engine_scale: 4
+                  converter_allowed: false
+                  converter_chain: ""
+                  converter_rate_multiplier: "1.00"
+                  withdraw_fee: "100.000000000000000000"
+                  usd_rate: 0.00367019
+                quote_currency:
+                  id: 2
+                  name: Bitcoin
+                  code: BTC
+                  currency_scale: 8
+                  engine_scale: 8
+                  converter_allowed: true
+                  converter_chain: "37,3"
+                  converter_rate_multiplier: "1.05"
+                  withdraw_fee: "0.000050000000000000"
+                  usd_rate: 47132.9
+                description: DGTX/BTC spot
+                tick_size: "0.000000010000000000"
+                tick_price: "0.000000000000000000"
+                tick_scale: 8
+                pnl_scale: 8
+                mark_price_scale: 8
+                category: Spot
+                quantity_scale: 0
+                large_scale: 2
+                lot_size: "1.000000000000000000"
+                openPx: 0
+                highPx: 8.0E-8
+                lowPx: 7.0E-8
+                pxChange24h: 12.5
+                volume24h: 3612774
+                volume24hUsd: 13259.56700706
+                lastTradePx: 8.0E-8
+                usd_scale: 4
+                liquidity_reward_currency: 1
+                funding_rate: 0
+      description: ""
+    Orders:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagedOrdersResponse'
+          examples:
+            OrdersResponse:
+              value:
+                next: cD0yMDIxLTA4LTIwKzEyJTNBNDYlM0ExOC40Mjg3ODclMkIwMCUzQTAw
+                results:
+                - id: 671de6fe-32fa-4816-8756-3b57a327798b
+                  market: ETH/USDC
+                  side: 1
+                  type: 2
+                  status: 4
+                  price: "3211.250000000000000000"
+                  quantity: "0.420000000000000000"
+                  created_at: 2021-08-20T12:47:21.479712Z
+                  client_id: f3dfd483-9de7-4cf4-ac5f-fe7c6153e1b5
+                  orig_quantity: "0.420000000000000000"
+                  average_price: 0
+                  reduce_only: false
+                  duration: 2
+                - id: 656875b9-0f3e-4169-9236-da0a0531c512
+                  market: ETH/USDC
+                  side: 1
+                  type: 2
+                  status: 2
+                  price: "3211.250000000000000000"
+                  quantity: "1.618000000000000000"
+                  created_at: 2021-08-20T12:47:21.471516Z
+                  client_id: 50aa5d48-5e93-4a72-85a3-d63ac3683c6f
+                  orig_quantity: "1.618000000000000000"
+                  average_price: 0
+                  duration: 2
+      description: Paginated orders response
+    Trades:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PagedHistoryTrades'
+          examples:
+            TradesResponse:
+              value:
+                next: cD0yMDIxLTA3LTIwKzEwJTNBMjglM0EzNS4yNTI3OTMlMkIwMCUzQTAw
+                results:
+                - trader_id: 119717
+                  market_id: 1
+                  traded_at: 2021-08-18T15:31:32.229211Z
+                  side: 1
+                  price: "45245.000000000000000000"
+                  quantity: "1.000000000000000000"
+                  contract_id: 130089258
+                  order_id: 19fba70e-9ea8-49fb-ad9f-553afa1c347c
+                - trader_id: 119717
+                  market_id: 24
+                  traded_at: 2021-08-06T12:15:02.486081Z
+                  side: 1
+                  price: "0.002400000000000000"
+                  quantity: "564.000000000000000000"
+                  contract_id: 117694099
+                  order_id: 99244c53-9215-43fe-9e83-7bd3a84acd15
+      description: Paginated trades response
+    OHLCV:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OHLCV'
+          examples:
+            OHLCV:
+              value:
+                timestamp_: 1573567858064750
+                open: "8680.000000000000000000"
+                high: "8685.000000000000000000"
+                low: "8675.000000000000000000"
+                close: "8685.000000000000000000"
+                volume: "57373.000000000000000000"
+      description: ""
+    CurrencyDefinitions:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Currency'
+      description: ""
+  securitySchemes:
+    TradersToken:
+      type: apiKey
+      description: |-
+        Trader's token in header, e.g.:
+        {
+        'Authorization': 'Token 4321532asfasdf31453245234adsadsf'
+        }
+      name: Authorization
+      in: header
+security:
+- TradersToken: []
