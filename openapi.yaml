@@ -21,7 +21,7 @@ info:
     IMPORTANT NOTES!
 
     - All of the data which is expected to be float or decimal are passed as strings. Data is converted into Decimal/float format on the client level
-    - All timestamps are in nanoseconds UTC
+    - All timestamps are in microseconds UTC
     - Enums, such as order types, status etc can be found in Exchange-Meta-Data group of endpoints
   contact:
     name: Sergiy Pavlyuk
@@ -294,16 +294,16 @@ paths:
       tags:
       - Private
       responses:
+        "201":
+          $ref: '#/components/responses/PlaceOrder'
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "201":
-          $ref: '#/components/responses/PlaceOrder'
       security:
       - TradersToken: []
       summary: Place an order
@@ -410,7 +410,7 @@ paths:
           created_at_from:
             value: 2020-04-01T13:37:39.867Z
         name: created_at_from
-        description: Timestamp in nanoseconds. Filters for order created at or after
+        description: Timestamp in microseconds. Filters for order created at or after
           this timestamp
         schema:
           format: int64
@@ -420,8 +420,8 @@ paths:
           created_at_to:
             value: 2020-04-02T13:37:39.867Z
         name: created_at_to
-        description: Timestamp in nanoseconds. Filters for orders created before this
-          timestamp
+        description: Timestamp in microseconds. Filters for orders created before
+          this timestamp
         schema:
           type: string
         in: query
@@ -470,12 +470,12 @@ paths:
           $ref: '#/components/responses/MyOrders'
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
       summary: Order history
       description: |-
         Includes orders that are no longer active. These are orders that have the following status:
@@ -505,7 +505,7 @@ paths:
         created_at_to:
           value: "1632234345216613"
       name: created_at_to
-      description: Timestamp in nanoseconds. Filters for orders created before this
+      description: Timestamp in microseconds. Filters for orders created before this
         timestamp
       schema:
         format: int64
@@ -515,7 +515,7 @@ paths:
         created_at_from:
           value: "1632234345216613"
       name: created_at_from
-      description: Timestamp in nanoseconds. Filters for order created at or after
+      description: Timestamp in microseconds. Filters for order created at or after
         this timestamp
       schema:
         format: int64
@@ -599,12 +599,12 @@ paths:
           description: Must return list of orders
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
       summary: Order status
       description: Get status of orders by query params
     parameters:
@@ -705,12 +705,12 @@ paths:
           $ref: '#/components/responses/MyOrders'
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
       summary: All orders
       description: |-
         Open orders are orders that have not been fully filled yet.
@@ -796,7 +796,7 @@ paths:
           traded_at_from:
             value: "1632234345216613"
         name: traded_at_from
-        description: Timestamp in nanoseconds
+        description: Timestamp in microseconds
         schema:
           format: int64
           type: integer
@@ -805,7 +805,7 @@ paths:
           traded_at_to:
             value: "1632234345216613"
         name: traded_at_to
-        description: Timestamp in nanoseconds. Only return contracts traded before
+        description: Timestamp in microseconds. Only return contracts traded before
           this time.
         schema:
           format: int64
@@ -845,12 +845,12 @@ paths:
           $ref: '#/components/responses/MyTrades'
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
       security:
       - TradersToken: []
       summary: Trade history
@@ -876,8 +876,8 @@ paths:
         traded_at_to:
           value: 2020-04-02T13:37:39.867Z
       name: traded_at_to
-      description: timestamp in nanoseconds. Only return contracts traded before this
-        time.
+      description: timestamp in microseconds. Only return contracts traded before
+        this time.
       schema:
         format: int64
         type: integer
@@ -886,7 +886,7 @@ paths:
         traded_at_from:
           value: 2020-04-01T13:37:39.867Z
       name: traded_at_from
-      description: timestamp in nanoseconds. Only return contracts traded after this
+      description: timestamp in microseconds. Only return contracts traded after this
         time.
       schema:
         format: int64
@@ -918,16 +918,16 @@ paths:
       tags:
       - Private
       responses:
+        "201":
+          $ref: '#/components/responses/UpdateOrder'
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "201":
-          $ref: '#/components/responses/UpdateOrder'
       security:
       - TradersToken: []
       summary: Order update
@@ -949,16 +949,16 @@ paths:
       tags:
       - Private
       responses:
+        "201":
+          $ref: '#/components/responses/CancelOrder'
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
-        "201":
-          $ref: '#/components/responses/CancelOrder'
       security:
       - TradersToken: []
       summary: Cancel order
@@ -1025,12 +1025,12 @@ paths:
           description: Get all orders
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
       security:
       - TradersToken: []
       summary: Trader position
@@ -1052,12 +1052,12 @@ paths:
           description: Returns user's current balances of main and trading account.
         "400":
           $ref: '#/components/responses/BadRequest'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
         "404":
           $ref: '#/components/responses/NotFound'
         "500":
           $ref: '#/components/responses/InternalServerError'
-        "401":
-          $ref: '#/components/responses/Unauthorized'
       security:
       - TradersToken: []
       summary: Balances
@@ -1367,8 +1367,8 @@ components:
       type: object
       properties:
         timestamp:
-          description: "unix timestamp in nanoseconds. Note, all times here and in\
-            \ the rest of project are in nanoseconds"
+          description: "unix timestamp in microseconds. Note, all times here and in\
+            \ the rest of project are in microseconds"
           minimum: 0
           type: integer
         message:
@@ -1758,7 +1758,7 @@ components:
       type: object
       properties:
         timestamp:
-          description: timestamp of the order in nanoseconds
+          description: timestamp of the order in microseconds
           type: integer
         base_volume:
           description: If spot - base volume of currency. If fututes - number of contracts.
@@ -1775,7 +1775,7 @@ components:
           description: "    Buy = 1\n    Sell = 2\n    \nTakers side. "
         trade_id:
           description: "internal trade id, used only to differentiate orders if they\
-            \ traded at the same nanosecod"
+            \ traded at the same microsecod"
           type: integer
       example: |-
         "recent_trades": [
