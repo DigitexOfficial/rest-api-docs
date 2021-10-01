@@ -1062,6 +1062,16 @@ paths:
       - TradersToken: []
       summary: Balances
       description: Getting balances
+  /v1/exchange/bot/currency_pair/:
+    summary: Returns available list of currency pairs
+    get:
+      tags:
+      - Public
+      - Exchange-Meta-Data
+      responses:
+        "200":
+          $ref: '#/components/responses/CurrencyPairList'
+      summary: Returns available list of currency pairs
 components:
   schemas:
     UpdateOrder:
@@ -2073,7 +2083,7 @@ components:
           type: string
         market_type:
           $ref: '#/components/schemas/MarketType'
-          description: ""
+          description: "Market type, either Spot or Future, more types to go"
         base_currency:
           $ref: '#/components/schemas/Currency'
           description: Base currency of the spot market or undrelying base currency
@@ -2088,6 +2098,18 @@ components:
         contract_currency:
           $ref: '#/components/schemas/Currency'
           description: Contract currency of the future
+        tick_size:
+          description: Ladder tick size
+          type: string
+        tick_price:
+          description: Price of one tick in contract currency
+          type: string
+        tick_scale:
+          description: Ladder tick price scale
+          type: integer
+        lot_size:
+          description: Lot size
+          type: string
       example:
       - id: 2
         name: ETH/USD
@@ -2113,6 +2135,10 @@ components:
           currency_scale: 4
           withdraw_fee: "100.000000000000000000"
         funding: "0.0003"
+        tick_size: "0.5"
+        tick_price: "1.0"
+        tick_scale: 1
+        lot_size: 1
       - id: 1
         name: BTC/USD
         code: BTCUSD
@@ -2137,6 +2163,10 @@ components:
           currency_scale: 4
           withdraw_fee: "100.000000000000000000"
         funding: "0.0003"
+        tick_size: "0.5"
+        tick_price: "1.0"
+        tick_scale: 1
+        lot_size: 1
     Currency:
       nullable: true
       description: ""
@@ -2284,6 +2314,28 @@ components:
       - "1"
       - "2"
       type: integer
+    CurrencyPair:
+      description: Currency pair data model
+      type: object
+      properties:
+        id:
+          description: Currency Pair Id
+          type: integer
+        code:
+          description: Currency Pair Code
+          type: string
+        scale:
+          description: currency pair scale
+          type: integer
+        name:
+          description: Currency pair name
+          type: string
+        base:
+          $ref: '#/components/schemas/Currency'
+          description: base currency of currency pair
+        quote:
+          $ref: '#/components/schemas/Currency'
+          description: quote currency of currency pair
   responses:
     DRFGenericExceptionResponse:
       $ref: apicurio:44557#/components/responses/DRFGenericExceptionResponse
@@ -3045,6 +3097,14 @@ components:
         A 500 indicates that a request failed due to a server-side problem that needs to be resolved before subsequent requests can succeed. It either indicates a temporary unavailability or permanent server-side problem that needs to be reported and resolved.
     Unauthorized:
       description: A 401 indicates that the request is not properly authenticated.
+    CurrencyPairList:
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/CurrencyPair'
+      description: returns list of available currency pairs
   securitySchemes:
     TradersToken:
       type: apiKey
